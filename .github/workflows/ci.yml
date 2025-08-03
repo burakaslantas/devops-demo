@@ -1,0 +1,25 @@
+name: CI
+on: [push]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+    - uses: actions/checkout@v4        # Kodu al
+    - name: Set commit SHA
+      run: echo "COMMIT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+
+    - name: Docker build & push GHCR
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHA }}
+        build-args: |
+          COMMIT_SHA=${{ env.COMMIT_SHA }}
+      env:
+        CR_PAT: ${{ secrets.CR_PAT }}
+
